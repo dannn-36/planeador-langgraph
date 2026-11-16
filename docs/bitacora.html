@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Bitácora — Planeador de fin de semana multiagente</title>
+<style>
+  @page { size: Letter; margin: 15mm 16mm; }
+  body { font-family: "Segoe UI", Arial, sans-serif; font-size: 9.4pt; line-height: 1.32; color: #1c2b2d; margin: 0; }
+  h1 { font-size: 15pt; color: #00696f; margin: 0 0 2pt; }
+  h2 { font-size: 11pt; color: #00696f; border-bottom: 1px solid #b9d6d8; padding-bottom: 1pt; margin: 9pt 0 4pt; }
+  p { margin: 3pt 0; }
+  .sub { color: #50666a; margin-bottom: 6pt; }
+  table { border-collapse: collapse; width: 100%; margin: 4pt 0; }
+  th { background: #00757c; color: #fff; text-align: left; padding: 3pt 5pt; font-size: 8.8pt; }
+  td { border: 1px solid #cfe0e1; padding: 3pt 5pt; vertical-align: top; font-size: 8.8pt; }
+  tr:nth-child(even) td { background: #f1f7f7; }
+  pre { background: #f3f5f5; border: 1px solid #d5dede; padding: 5pt 6pt; font-family: Consolas, monospace;
+        font-size: 7.4pt; line-height: 1.25; white-space: pre-wrap; word-break: break-word; margin: 4pt 0; }
+  code { font-family: Consolas, monospace; font-size: 8.6pt; }
+  ul, ol { margin: 3pt 0; padding-left: 16pt; }
+  li { margin: 1.5pt 0; }
+  .cols { display: flex; gap: 10pt; align-items: flex-start; }
+  .cols > div { flex: 1; }
+  .fill { color: #a03a00; font-weight: 600; }
+  h2, table, pre, svg { break-inside: avoid; }
+  svg text { font-family: "Segoe UI", Arial, sans-serif; font-size: 10px; fill: #1c2b2d; }
+</style>
+</head>
+<body>
+
+<h1>Bitácora — Planeador de fin de semana multiagente con LangGraph y Ollama</h1>
+<p class="sub">Aplicaciones basadas en grandes modelos de lenguaje · Módulo 3 · Universidad El Bosque ·
+Modelo: <code>qwen2.5:3b</code> (Ollama 0.32.6) · langgraph 1.2 · langchain 1.5 · Python 3.14</p>
+
+<h2>1. Integrantes y roles</h2>
+<table>
+  <tr><th style="width:38%">Integrante</th><th style="width:22%">Rol</th><th>Responsabilidad</th></tr>
+  <tr><td class="fill">[Nombre 1]</td><td>Integrador/a</td><td>Repositorio, entorno virtual, Ollama y API.</td></tr>
+  <tr><td class="fill">[Nombre 2]</td><td>Diseñador/a de agentes</td><td>Prompts, herramientas y salida estructurada del supervisor.</td></tr>
+  <tr><td class="fill">[Nombre 3]</td><td>Probador/a</td><td>Preguntas de prueba, tiempos y esta bitácora.</td></tr>
+</table>
+
+<h2>2. Diagrama del grafo</h2>
+<div class="cols">
+<div>
+<svg viewBox="0 0 430 190" width="100%" xmlns="http://www.w3.org/2000/svg">
+  <defs><marker id="a" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 z" fill="#00696f"/></marker></defs>
+  <g fill="#e4f1f2" stroke="#00696f">
+    <rect x="165" y="38" width="100" height="26" rx="5"/>
+    <rect x="5" y="118" width="70" height="26" rx="5"/><rect x="85" y="118" width="78" height="26" rx="5"/>
+    <rect x="173" y="118" width="76" height="26" rx="5"/><rect x="259" y="118" width="64" height="26" rx="5"/>
+    <rect x="345" y="118" width="80" height="26" rx="5" fill="#fff3d6"/>
+  </g>
+  <g text-anchor="middle">
+    <text x="215" y="14">START</text><text x="215" y="55">supervisor</text>
+    <text x="40" y="135">clima</text><text x="124" y="135">presupuesto</text><text x="211" y="135">actividades</text>
+    <text x="291" y="135">reservas</text><text x="385" y="135">sintetizador</text><text x="385" y="182">END</text>
+    <text x="345" y="92" style="font-size:9px">"fin"</text>
+    <text x="110" y="92" style="font-size:9px">arista condicional</text>
+  </g>
+  <g stroke="#00696f" fill="none" marker-end="url(#a)">
+    <path d="M215,18 V37"/>
+    <path d="M190,64 L45,117" stroke-dasharray="4 3"/><path d="M200,64 L128,117" stroke-dasharray="4 3"/>
+    <path d="M215,64 V117" stroke-dasharray="4 3"/><path d="M230,64 L288,117" stroke-dasharray="4 3"/>
+    <path d="M255,64 L380,117" stroke-dasharray="4 3"/>
+    <path d="M385,144 V170"/>
+    <path d="M291,144 V160 H2 V51 H164"/>
+  </g>
+  <g stroke="#00696f" fill="none"><path d="M40,144 V160 M124,144 V160 M211,144 V160"/></g>
+</svg>
+<p style="font-size:8pt">Línea punteada: el supervisor decide. Los cuatro especialistas vuelven siempre al supervisor (ciclo).</p>
+</div>
+<div>
+<pre>graph TD;
+  __start__ --> supervisor;
+  supervisor -.-> clima;
+  supervisor -.-> presupuesto;
+  supervisor -.-> actividades;
+  supervisor -.-> reservas;
+  supervisor -. fin .-> sintetizador;
+  clima --> supervisor;
+  presupuesto --> supervisor;
+  actividades --> supervisor;
+  reservas --> supervisor;
+  sintetizador --> __end__;</pre>
+<p style="font-size:8pt">Salida de <code>python main.py --grafo</code> (resumida). <code>actividades</code> es el nodo del reto.</p>
+</div>
+</div>
+
+<h2>3. Pruebas (versión final del código)</h2>
+<table>
+  <tr><th>#</th><th>Agentes que llamó el supervisor</th><th>¿Correcta?</th><th>Tiempo (s)</th><th>Resultado y observaciones</th></tr>
+  <tr><td>1</td><td>clima</td><td>Sí</td><td>11</td><td>Lluvioso, 7–15 °C, 80 % de lluvia. El sintetizador dejó al final la frase sobrante "Datos verificados: …".</td></tr>
+  <tr><td>2</td><td>presupuesto</td><td>Sí</td><td>9</td><td>No alcanza, faltan $50.000. El sintetizador agregó una frase innecesaria ("No hay reserva disponible…").</td></tr>
+  <tr><td>3</td><td>clima, presupuesto</td><td>Sí</td><td>14</td><td>Soleado, 5 % de lluvia; $230.000 en total. El agente de presupuesto escribió además "para tu presupuesto de $230.000 falta $0" (no se dio presupuesto); el sintetizador no lo usó.</td></tr>
+  <tr><td>4</td><td>clima, presupuesto, reservas</td><td>Sí</td><td>18</td><td>15 % de lluvia; $210.000, sobran $40.000; reserva RES-001 a nombre de Laura. Clima entró por la red de palabras clave ("llueve"), el LLM no lo marcó.</td></tr>
+  <tr><td>5</td><td>presupuesto, reservas</td><td>Sí</td><td>15</td><td>Faltan $60.000 y NO reservó (solo consultó cupos). El agente de reservas dijo por error "no queda disponibilidad" (quedaban 6 cupos).</td></tr>
+  <tr><td>6</td><td>ninguno</td><td>Sí</td><td>2</td><td>Explica que solo ayuda con clima, presupuesto, reservas y actividades de los cinco destinos.</td></tr>
+  <tr><td>7*</td><td>clima, actividades</td><td>Sí</td><td>15</td><td>*Pregunta del reto. Soleado 11–24 °C y las 3 actividades de Villa de Leyva tal como están en los datos.</td></tr>
+</table>
+<p>Equipo de prueba: portátil con Windows 11; Ollama usó aceleración por hardware, por eso los tiempos son menores que el
+rango de 1 a 3 minutos que la guía estima para CPU. Punto de control 2 (tools sin modelo) y 3 (ciclo ReAct, "faltan $50.000")
+superados. API (Parte 6): <code>GET /health/llm</code> devolvió <code>ok: true</code> con la lista de modelos y
+<code>POST /api/v1/chat</code> respondió la pregunta 3 en 16 s; una pregunta vacía devuelve HTTP 422.
+<span class="fill">[Pendiente del grupo: repetir la pregunta 3 desde el frontend de pruebachat en http://localhost:4200 y pegar la captura.]</span></p>
+
+<h2>4. Fallos encontrados con el código guía y cómo se corrigieron</h2>
+<p>Primera corrida, con el código copiado de la guía: las preguntas 3 y 4 fallaron (sin costo, sin reserva y con un costo
+inventado) y en la 5 y la 6 el supervisor llamó a clima sin necesidad. No se ocultan los fallos; cada uno motivó un ajuste
+(comentado en el código).</p>
+<table>
+  <tr><th style="width:31%">Fallo observado</th><th style="width:31%">Causa probable</th><th>Ajuste</th></tr>
+  <tr><td>El supervisor elegía otra vez el agente ya consultado; la protección contra ciclos cortaba y nunca se llegaba a presupuesto (P3) ni a reservas (P4). En P6 llamó a clima.</td>
+      <td>Para un modelo de 3B, elegir "el siguiente" mirando pregunta + resultados + consultados es demasiado. Al restringir el esquema a los no consultados, pasó a llamar agentes de más y nunca decía "fin".</td>
+      <td><code>Decision</code> es ahora una lista de verificación (qué temas menciona la pregunta) y el código calcula <code>siguiente</code> con orden fijo, reservas de último. Más una red de palabras clave que solo agrega agentes.</td></tr>
+  <tr><td>Presupuesto inventaba el costo: <code>calcular_saldo(250000, 180000)</code>, <code>costo_total='estimar_costo.resultado'</code>. En P4 llegó a decir "$489.000".</td>
+      <td>El modelo pide las dos tools <b>en paralelo</b>, antes de conocer el resultado de <code>estimar_costo</code>. Reforzar el prompt ("una por una") no fue estable.</td>
+      <td><code>calcular_saldo(destino, personas, presupuesto)</code> calcula el costo por dentro: cada tool es autosuficiente.</td></tr>
+  <tr><td>Clima y sintetizador daban datos que ninguna tool devolvió ("nublado" para Villa de Leyva; código "RES-123456789").</td>
+      <td>Los especialistas recibían los resultados de otros agentes y se confundían; el sintetizador solo veía la paráfrasis del agente.</td>
+      <td>Solo reservas ve resultados previos. A cada resultado se le adjunta la salida literal de las tools ("datos verificados") y el sintetizador debe copiar cifras de ahí.</td></tr>
+  <tr><td><code>estimar_costo('Sueska')</code> → "No conozco el destino".</td><td>El modelo escribe mal nombres propios.</td>
+      <td><code>buscar_destino</code> acepta nombres parecidos con <code>difflib</code> (umbral 0,8).</td></tr>
+</table>
+
+<h2>5. Traza completa de la pregunta 4</h2>
+<pre>Tú: Somos 3 y tenemos 250000. Si no llueve mucho y nos alcanza, reserva Suesca para el sábado a nombre de Laura.
+   [supervisor] necesita: clima, presupuesto, reservas | consultados: ninguno -> clima (partes: ['Somos 3 y tenemos 250000', ...])
+   [clima] tool: consultar_pronostico({'destino': 'Suesca', 'dia': 'sabado'})
+   [clima] Consulta al pronóstico del clima para Suesca. El sábado estará soleado con una temperatura entre 7°C y 21°C y la
+           probabilidad de lluvia es del 15%. Recomiendo llevar ropa ligera y probablemente un impermeable si planeas ir a pie.
+   [supervisor] necesita: clima, presupuesto, reservas | consultados: clima -> presupuesto (partes: ['Somos 3', 'tenemos 250000',
+           'Si no llueve mucho y nos alcanza', 'reserva Suesca para el sábado a nombre de Laura'])
+   [presupuesto] tool: calcular_saldo({'personas': 3, 'presupuesto': 250000, 'destino': 'Suesca'})
+   [presupuesto] El costo total para ir a Suesca será de $210.000 y sobrarán $40.000.
+   [supervisor] necesita: clima, presupuesto, reservas | consultados: clima, presupuesto -> reservas (partes: [...])
+   [reservas] tool: consultar_disponibilidad({'dia': 'sábado', 'destino': 'Suesca'})
+   [reservas] tool: crear_reserva({'destino': 'Suesca', 'dia': 'sábado', 'personas': 3, 'responsable': 'Laura'})
+   [reservas] Se ha creado la reserva con el código RES-001.
+   (3 agentes consultados = MAX_PASOS: el supervisor pasa a "fin" sin llamar al modelo)
+Planeador (18 s):
+Hay una reserva confirmada con el código RES-001 para Suesca el sábado a nombre de Laura. La temperatura será entre 7°C y 21°C
+y la probabilidad de lluvia es del 15%. Sobrarán $40.000 en tu presupuesto.
+>> Reservas nuevas: [{'codigo': 'RES-001', 'destino': 'suesca', 'dia': 'sabado', 'personas': 3, 'responsable': 'Laura'}]</pre>
+<p>Verificación a mano: Suesca = $25.000 + $15.000 + $30.000 = $70.000 × 3 = $210.000; $250.000 − $210.000 = $40.000;
+pronóstico del sábado: soleado, 15 %; cupos 8 → 5. Traza de las siete preguntas: <code>docs/traza_pruebas.txt</code>.</p>
+
+<h2>6. Reto elegido: nuevo especialista (Agente de Actividades)</h2>
+<ul>
+  <li><b>Datos:</b> diccionario <code>ACTIVIDADES</code> en <code>datos.py</code>, 3 actividades ficticias por destino con tipo y duración.</li>
+  <li><b>Tool:</b> <code>recomendar_actividades(destino)</code>; si el destino no existe devuelve la lista de destinos válidos, sin excepción.</li>
+  <li><b>Agente:</b> <code>agente_actividades</code> con <code>PROMPT_ACTIVIDADES</code> (solo puede mencionar lo que devuelve la tool).</li>
+  <li><b>Grafo:</b> nodo <code>actividades</code>, arista de vuelta al supervisor, entrada en la arista condicional, campo
+      <code>pide_actividades</code> en <code>Decision</code> y prompts del supervisor y sintetizador actualizados.
+      <code>MAX_PASOS</code> sigue en 3: con cuatro especialistas, una pregunta que pida los cuatro temas deja uno sin atender.</li>
+</ul>
+<p><b>Evidencia</b> (<code>python pruebas.py 7</code>):</p>
+<pre>Tú: ¿Qué actividades podemos hacer en Villa de Leyva y cómo estará el clima el domingo?
+   [supervisor] necesita: clima, actividades | consultados: ninguno -> clima
+   [clima] tool: consultar_pronostico({'destino': 'Villa de Leyva', 'dia': 'domingo'})
+   [supervisor] necesita: clima, actividades | consultados: clima -> actividades
+   [actividades] tool: recomendar_actividades({'destino': 'Villa de Leyva'})
+   [supervisor] necesita: clima, actividades | consultados: clima, actividades -> fin
+Planeador (15 s): El clima para Villa de Leyva el próximo domingo será soleado con temperaturas entre 11°C y 24°C. [...] Las actividades
+recomendadas son: Museo El Fósil y Centro de Investigaciones Paleontológicas (museos, 2 h); Caminata a los Pozos Azules
+(senderismo, 2 h); Degustación de cocina boyacense en la Plaza Mayor (gastronomía, 1 h).</pre>
+
+<h2>7. Tres limitaciones observadas y cómo las mitigaríamos</h2>
+<ol>
+  <li><b>El supervisor no es confiable por sí solo con un modelo de 3B.</b> Con la misma pregunta devolvió decisiones distintas entre
+      una llamada y la siguiente, y no reconoció "si no llueve mucho" como tema de clima. Hoy lo compensan el orden fijo y las
+      palabras clave, que no cubren sinónimos ("¿hará buen día?"). Mitigación: modelo más grande solo para el supervisor,
+      decidir una vez y guardar el plan en el estado, y medir el enrutamiento con un conjunto de preguntas etiquetadas.</li>
+  <li><b>El texto de los agentes puede contradecir a las tools.</b> Aun con los datos verificados adjuntos, un agente dijo "no queda
+      disponibilidad" con 6 cupos y otro inventó un presupuesto. El sintetizador casi siempre copia lo correcto, pero nada lo
+      obliga. Mitigación: que las tools devuelvan datos estructurados y armar las cifras de la respuesta con código, o un nodo
+      verificador que compare la respuesta final con las salidas de las tools antes de mostrarla.</li>
+  <li><b>La condición de la reserva la decide el LLM y no hay confirmación ni memoria.</b> En la pregunta 5 no reservó, pero solo
+      porque el agente obedeció el prompt; "no llueve mucho" no tiene umbral definido; las reservas viven en memoria y cada
+      pregunta empieza de cero. Mitigación: validar la condición en código (regla explícita, p. ej. lluvia &lt; 40 % y saldo ≥ 0),
+      pedir confirmación humana con <code>interrupt</code> antes de <code>crear_reserva</code>, y un checkpointer con
+      <code>thread_id</code> más una base de datos para las reservas.</li>
+</ol>
+
+</body>
+</html>

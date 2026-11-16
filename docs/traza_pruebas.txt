@@ -1,0 +1,105 @@
+﻿
+===== Pregunta 1: ¿Cómo estará el clima en Guatavita el domingo?
+   [supervisor] necesita: clima | consultados: ninguno -> clima (partes: ['¿Cómo estará el clima en Guatavita el domingo?', 'Guatavita', 'domingo'])
+   [clima] tool: consultar_pronostico({'dia': 'domingo', 'destino': 'Guatavita'})
+   [clima] El pronóstico para Guatavita el próximo domingo es lluvioso con temperaturas entre 7°C y 15°C. Es recomendable llevar una chaqueta impermeable.
+   [supervisor] necesita: clima | consultados: clima -> fin (partes: ['¿Cómo estará el clima en Guatavita el domingo?', 'Guatavita', 'domingo'])
+
+Respuesta final:
+El clima para Guatavita el próximo domingo será lluvioso con temperaturas entre 7°C y 15°C. Se recomienda llevar una chaqueta impermeable debido a la alta probabilidad de lluvia del 80%. Datos verificados: lluvioso, entre 7 °C y 15 °C.
+
+>> Agentes llamados: clima
+>> Tiempo: 11 s
+>> Reservas nuevas: ninguna
+
+===== Pregunta 2: Somos 4 amigos con 350000 pesos. ¿Nos alcanza para ir a Zipaquirá?
+   [supervisor] necesita: presupuesto | consultados: ninguno -> presupuesto (partes: ['Somos 4 amigos con 350000 pesos.', '¿Nos alcanza para ir a Zipaquirá?'])
+   [presupuesto] tool: calcular_saldo({'destino': 'Zipaquirá', 'personas': 4, 'presupuesto': 350000})
+   [presupuesto] No alcanza para ir a Zipaquirá con 4 personas, falta $50.000.
+   [supervisor] necesita: presupuesto | consultados: presupuesto -> fin (partes: ['Somos 4 amigos con 350000 pesos.', '¿Nos alcanza para ir a Zipaquirá?'])
+
+Respuesta final:
+No hay reserva disponible para tu consulta. Presupuestamente, con un presupuesto de 350.000 pesos no alcanza para ir a Zipaquirá con 4 personas debido a que falta $50.000. Para actividades y planes en Guatavita, Villa de Leyva, Suesca y Chicaque puedes ayudar con clima, presupuesto, reservas y actividades.
+
+>> Agentes llamados: presupuesto
+>> Tiempo: 9 s
+>> Reservas nuevas: ninguna
+
+===== Pregunta 3: Somos 2 y queremos ir a Villa de Leyva el sábado. ¿Cómo estará el clima y cuánto nos cuesta?
+   [supervisor] necesita: clima, presupuesto | consultados: ninguno -> clima (partes: ['Somos 2', 'Villa de Leyva', 'sábado', 'dinero, costo'])
+   [clima] tool: consultar_pronostico({'destino': 'Villa de Leyva', 'dia': 'sabado'})
+   [clima] El sábado en Villa de Leyva será soleado con temperaturas entre 12°C y 25°C. No necesitarás un impermeable. El costo no está disponible en este momento.
+   [supervisor] necesita: clima, presupuesto | consultados: clima -> presupuesto (partes: ['Somos 2', 'queremos ir a Villa de Leyva el sábado', '¿Cómo estará el clima', 'cuanto nos cuesta'])
+   [presupuesto] tool: estimar_costo({'destino': 'Villa de Leyva', 'personas': 2})
+   [presupuesto] El clima en Villa de Leyva no fue especificado, pero el costo total por persona es $115.000. Para 2 personas será $230.000. No pude calcular el costo del clima. El costo total es $230.000.
+
+Para tu presupuesto de $230.000, falta $0.
+   [supervisor] necesita: clima, presupuesto | consultados: clima, presupuesto -> fin (partes: ['Somos 2', 'queremos ir a Villa de Leyva el sábado', '¿Cómo estará el clima', 'cuanto nos cuesta'])
+
+Respuesta final:
+El clima en Villa de Leyva el sábado será soleado con temperaturas entre 12°C y 25°C, probabilidad de lluvia del 5%. El costo por persona es $115.000 para transporte y alimentación, por lo que el costo total para 2 personas sería $230.000. No hay necesidad de llevar un impermeable.
+
+>> Agentes llamados: clima, presupuesto
+>> Tiempo: 14 s
+>> Reservas nuevas: ninguna
+
+===== Pregunta 4: Somos 3 y tenemos 250000. Si no llueve mucho y nos alcanza, reserva Suesca para el sábado a nombre de Laura.
+   [supervisor] necesita: clima, presupuesto, reservas | consultados: ninguno -> clima (partes: ['Somos 3 y tenemos 250000', 'Precisa que la pregunta trata sobre un plan para un fin de semana (reserva en Suesca).', 'menciona_dinero_o_costo=true; lo demás false.'])
+   [clima] tool: consultar_pronostico({'destino': 'Suesca', 'dia': 'sabado'})
+   [clima] Consulta al pronóstico del clima para Suesca. El sábado estará soleado con una temperatura entre 7°C y 21°C y la probabilidad de lluvia es del 15%. Recomiendo llevar ropa ligera y probablemente un impermeable si planeas ir a pie.
+   [supervisor] necesita: clima, presupuesto, reservas | consultados: clima -> presupuesto (partes: ['Somos 3', 'tenemos 250000', 'Si no llueve mucho y nos alcanza', 'reserva Suesca para el sábado a nombre de Laura'])
+   [presupuesto] tool: calcular_saldo({'personas': 3, 'presupuesto': 250000, 'destino': 'Suesca'})
+   [presupuesto] El costo total para ir a Suesca será de $210.000 y sobrarán $40.000.
+   [supervisor] necesita: clima, presupuesto, reservas | consultados: clima, presupuesto -> reservas (partes: ['Somos 3', 'tenemos 250000', 'Si no llueve mucho y nos alcanza', 'reserva Suesca para el sábado a nombre de Laura'])
+   [reservas] tool: consultar_disponibilidad({'dia': 'sábado', 'destino': 'Suesca'})
+   [reservas] tool: crear_reserva({'destino': 'Suesca', 'dia': 'sábado', 'personas': 3, 'responsable': 'Laura'})
+   [reservas] Se ha creado la reserva con el código RES-001.
+
+Respuesta final:
+Hay una reserva confirmada con el código RES-001 para Suesca el sábado a nombre de Laura. La temperatura será entre 7°C y 21°C y la probabilidad de lluvia es del 15%. Sobrarán $40.000 en tu presupuesto.
+
+>> Agentes llamados: clima, presupuesto, reservas
+>> Tiempo: 18 s
+>> Reservas nuevas: [{'codigo': 'RES-001', 'destino': 'suesca', 'dia': 'sabado', 'personas': 3, 'responsable': 'Laura'}]
+
+===== Pregunta 5: Somos 3 con 150000. Si nos alcanza, reserva Suesca el domingo a nombre de Laura.
+   [supervisor] necesita: presupuesto, reservas | consultados: ninguno -> presupuesto (partes: ['Somos 3 con 150000.', 'Si nos alcanza, reserva Suesca el domingo a nombre de Laura.'])
+   [presupuesto] tool: calcular_saldo({'destino': 'Suesca', 'personas': 3, 'presupuesto': 150000})
+   [presupuesto] Falta $60.000 para ir a Suesca. El presupuesto de $150.000 es insuficiente.
+   [supervisor] necesita: presupuesto, reservas | consultados: presupuesto -> reservas (partes: ['Somos 3 con 150000.', 'Si nos alcanza, reserva Suesca el domingo a nombre de Laura.'])
+   [reservas] tool: consultar_disponibilidad({'destino': 'Suesca', 'dia': 'domingo'})
+   [reservas] No se puede crear la reserva porque no queda disponibilidad para Suesca el domingo. El presupuesto insuficiente ($150,000 - $210,000 = $60,000 faltantes).
+   [supervisor] necesita: presupuesto, reservas | consultados: presupuesto, reservas -> fin (partes: ['Somos 3 con 150000.', 'Si nos alcanza, reserva Suesca el domingo a nombre de Laura.'])
+
+Respuesta final:
+No hay reserva posible para Suesca el domingo con tu presupuesto actual. El costo es de $210.000 y falta un monto de $60.000.
+
+>> Agentes llamados: presupuesto, reservas
+>> Tiempo: 15 s
+>> Reservas nuevas: ninguna
+
+===== Pregunta 6: ¿Quién ganó el mundial de 2022?
+   [supervisor] necesita: ninguno | consultados: ninguno -> fin (partes: ['¿Quién ganó el mundial de 2022?', 'todo false.'])
+
+Respuesta final:
+No hay resultados para la pregunta sobre quién ganó el Mundial de 2022. Puedo ayudarte con clima, presupuesto, reservas y actividades para Guatavita, Zipaquirá, Villa de Leyva, Suesca y Chicaque.
+
+>> Agentes llamados: ninguno
+>> Tiempo: 2 s
+>> Reservas nuevas: ninguna
+
+===== Pregunta 7: ¿Qué actividades podemos hacer en Villa de Leyva y cómo estará el clima el domingo?
+   [supervisor] necesita: clima, actividades | consultados: ninguno -> clima (partes: ['¿Qué actividades podemos hacer en Villa de Leyva', 'cómo estará el clima el domingo'])
+   [clima] tool: consultar_pronostico({'destino': 'Villa de Leyva', 'dia': 'domingo'})
+   [clima] El clima en Villa de Leyva el próximo domingo será soleado con temperaturas entre 11°C y 24°C. No hay mucha probabilidad de lluvia. Puedes disfrutar del sol y la naturaleza sin necesidad de impermeable.
+   [supervisor] necesita: clima, actividades | consultados: clima -> actividades (partes: ['¿Qué actividades podemos hacer en Villa de Leyva', 'cómo estará el clima el domingo'])
+   [actividades] tool: recomendar_actividades({'destino': 'Villa de Leyva'})
+   [actividades] El clima para el domingo no está disponible con la herramienta que utilizo. Sin embargo, aquí tienes algunas actividades recomendadas para Villa de Leyca: Museo El Fósil y Centro de Investigaciones Paleontológicas (museos, 2 h); Caminata a los Pozos Azules (senderismo, 2 h); Degustación de cocina boyacense en la Plaza Mayor (gastronomía, 1 h).
+   [supervisor] necesita: clima, actividades | consultados: clima, actividades -> fin (partes: ['¿Qué actividades podemos hacer en Villa de Leyva', 'cómo estará el clima el domingo'])
+
+Respuesta final:
+El clima para Villa de Leyva el próximo domingo será soleado con temperaturas entre 11°C y 24°C. No hay mucha probabilidad de lluvia. Puedes disfrutar del sol y la naturaleza sin necesidad de impermeable. Las actividades recomendadas son: Museo El Fósil y Centro de Investigaciones Paleontológicas (museos, 2 h); Caminata a los Pozos Azules (senderismo, 2 h); Degustación de cocina boyacense en la Plaza Mayor (gastronomía, 1 h).
+
+>> Agentes llamados: clima, actividades
+>> Tiempo: 15 s
+>> Reservas nuevas: ninguna
