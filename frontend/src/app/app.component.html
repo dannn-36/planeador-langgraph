@@ -1,0 +1,82 @@
+<main class="page">
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="Inicio de Ruta IA">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M12 21s6-5.2 6-11a6 6 0 1 0-12 0c0 5.8 6 11 6 11Z"/><circle cx="12" cy="10" r="2.3"/></svg>
+      </span>
+      <span><strong>Ruta IA</strong><small>Planeador multiagente</small></span>
+    </a>
+
+    <div class="health" [attr.data-state]="healthState">
+      <span class="health-dot" aria-hidden="true"></span>
+      <span><strong>{{ healthText }}</strong><small>{{ modelName }}</small></span>
+      <button type="button" (click)="probe()" aria-label="Volver a comprobar el sistema">Comprobar</button>
+    </div>
+  </header>
+
+  <section class="chat-card" aria-labelledby="chat-title">
+    <header class="chat-header">
+      <div>
+        <span class="overline">Asistente local con Ollama</span>
+        <h1 id="chat-title">Planea tu fin de semana</h1>
+      </div>
+      <button class="clear-button" type="button" (click)="clearConversation()" [disabled]="!turns.length || loading">
+        Limpiar
+      </button>
+    </header>
+
+    <div class="agent-strip" aria-label="Especialistas disponibles">
+      <span class="agent-label">Especialistas</span>
+      <span class="agent-pill" *ngFor="let specialist of specialists">
+        <b>{{ specialist.code }}</b>{{ specialist.name }}
+      </span>
+    </div>
+
+    <div class="transcript" #transcript role="log" aria-live="polite" aria-label="Conversación con el planeador">
+      <section class="welcome" *ngIf="!turns.length">
+        <div class="welcome-icon" aria-hidden="true">✦</div>
+        <h2>¿Qué te gustaría organizar?</h2>
+        <p>Pregunta por el clima, presupuesto, actividades o reservas para una salida cerca de Bogotá.</p>
+
+        <div class="suggestions">
+          <button type="button" *ngFor="let suggestion of suggestions" (click)="useSuggestion(suggestion)" [disabled]="loading">
+            <span>{{ suggestion.eyebrow }}</span>{{ suggestion.label }}
+          </button>
+        </div>
+      </section>
+
+      <article class="turn" *ngFor="let turn of turns" [attr.data-who]="turn.who">
+        <div class="avatar" aria-hidden="true">{{ turn.who === 'user' ? 'TÚ' : turn.who === 'error' ? '!' : 'IA' }}</div>
+        <div class="message-wrap">
+          <div class="message-label">
+            <strong>{{ turn.who === 'user' ? 'Tú' : turn.who === 'error' ? 'Error' : 'Ruta IA' }}</strong>
+            <span *ngIf="turn.elapsedMs">{{ turn.elapsedMs / 1000 | number:'1.0-1' }} s</span>
+          </div>
+          <div class="message">{{ turn.text }}</div>
+        </div>
+      </article>
+
+      <article class="turn" *ngIf="loading" data-who="assistant">
+        <div class="avatar" aria-hidden="true">IA</div>
+        <div class="message-wrap">
+          <div class="message-label"><strong>Consultando agentes</strong></div>
+          <div class="typing" aria-label="Generando respuesta"><span></span><span></span><span></span></div>
+        </div>
+      </article>
+    </div>
+
+    <form class="composer" (ngSubmit)="send()">
+      <div class="composer-box">
+        <textarea id="question" name="question" aria-label="Describe tu plan" [(ngModel)]="input"
+          (keydown)="handleKeydown($event)" [disabled]="loading" rows="2" maxlength="800"
+          placeholder="Escribe tu plan o pregunta…"></textarea>
+        <button type="submit" [disabled]="loading || !input.trim()" aria-label="Enviar pregunta">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 12 16-8-5.5 16-3.2-6.3L4 12Zm7.3 1.7L20 4"/></svg>
+        </button>
+      </div>
+      <div class="composer-meta"><span>Enter para enviar · Shift + Enter para nueva línea</span><span>{{ input.length }}/800</span></div>
+    </form>
+  </section>
+
+  <footer>LangGraph + Ollama · Datos simulados para fines académicos</footer>
+</main>

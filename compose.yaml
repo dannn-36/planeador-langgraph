@@ -34,18 +34,30 @@ services:
     environment:
       OLLAMA_URL: http://ollama:11434
       MODELO_OLLAMA: ${MODELO_OLLAMA:-qwen2.5:3b}
+      FRONTEND_URL: http://localhost:4200
     ports:
-      - "8080:8080"
+      - "8000:8000"
     healthcheck:
       test:
         - CMD
         - python
         - -c
-        - "import urllib.request; urllib.request.urlopen('http://localhost:8080/health/llm', timeout=5)"
+        - "import urllib.request; urllib.request.urlopen('http://localhost:8000/health/llm', timeout=5)"
       interval: 10s
       timeout: 6s
       retries: 12
       start_period: 20s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "4200:4200"
 
 volumes:
   ollama_data:

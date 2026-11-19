@@ -29,15 +29,18 @@ docker compose up --build
 
 Cuando los servicios estén listos:
 
-- API: http://localhost:8080
-- Documentación interactiva: http://localhost:8080/docs
-- Salud de Ollama: http://localhost:8080/health/llm
+- Interfaz Angular: http://localhost:4200
+- API: http://localhost:8000
+- Documentación interactiva: http://localhost:8000/docs
+- Salud de Ollama: http://localhost:8000/health/llm
+
+Si abres directamente http://localhost:8000, el backend te redirige a la interfaz.
 
 Prueba rápida desde otra terminal:
 
 ```powershell
 Invoke-RestMethod -Method Post `
-  -Uri "http://localhost:8080/api/v1/chat" `
+  -Uri "http://localhost:8000/api/v1/chat" `
   -ContentType "application/json" `
   -Body '{"question":"¿Cómo estará el clima en Guatavita el domingo?"}'
 ```
@@ -87,8 +90,8 @@ pip install -r requirements.txt
 | `python main.py --grafo` | Imprime el grafo en Mermaid (pegar en https://mermaid.live) |
 | `python pruebas.py` | Corre las 6 preguntas de prueba + la del reto, con traza y tiempos |
 | `python pruebas.py 4` | Corre solo la pregunta 4 |
-| `uvicorn api:app --port 8080` | API REST con el contrato de pruebachat (`POST /api/v1/chat`, `GET /health/llm`) |
-| `docker compose up --build` | Levanta Ollama, descarga el modelo y arranca la API |
+| `uvicorn api:app --port 8000` | API REST con el contrato de pruebachat (`POST /api/v1/chat`, `GET /health/llm`) |
+| `docker compose up --build` | Levanta Ollama, descarga el modelo y arranca la API y la interfaz Angular |
 
 Para cambiar de modelo o de servidor sin tocar el código:
 
@@ -98,17 +101,24 @@ $env:MODELO_OLLAMA = "llama3.2:3b"
 $env:OLLAMA_URL = "http://localhost:11434"
 ```
 
-### Conectar con el frontend del curso (Parte 6)
+### Interfaz Angular incluida
 
 ```bash
-docker stop pruebachat_backend            # libera el puerto 8080
-uvicorn api:app --port 8080
-# desde la carpeta del proyecto pruebachat:
-docker compose -f docker/docker-compose.yml up -d --no-deps frontend
-# o sin Docker:  npx http-server frontend/src -p 4200
+docker compose up -d --build
 ```
 
-Abrir http://localhost:4200. Documentación interactiva de la API en http://localhost:8080/docs.
+Abrir http://localhost:4200. El frontend usa rutas relativas y Nginx envía `/api` y `/health`
+al contenedor de FastAPI, por lo que no hay puertos codificados en el navegador.
+
+Para desarrollar únicamente la interfaz con recarga automática:
+
+```bash
+cd frontend
+npm install
+npm start
+```
+
+El proxy de desarrollo conecta Angular con la API en http://localhost:8000.
 
 ## Archivos
 
@@ -122,7 +132,8 @@ Abrir http://localhost:4200. Documentación interactiva de la API en http://loca
 | `main.py` | Chat por consola |
 | `api.py` | API FastAPI |
 | `Dockerfile` | Imagen reproducible de la API en Python 3.12 |
-| `compose.yaml` | Orquesta Ollama, descarga del modelo y API |
+| `compose.yaml` | Orquesta Ollama, descarga del modelo, API y frontend |
+| `frontend/` | Interfaz Angular del planeador y servidor Nginx |
 | `pruebas.py` | Preguntas de prueba con traza y tiempos |
 | `docs/bitacora.pdf` | Bitácora del grupo (fuente: `docs/bitacora.html`) |
 | `docs/traza_pruebas.txt` | Traza completa de la última corrida de `pruebas.py` |

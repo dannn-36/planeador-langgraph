@@ -5,30 +5,38 @@ Así el frontend del curso (frontend/src/index.html) funciona sin cambios
 contra este backend en Python, igual que contra el backend en Spring AI.
 
 Uso:
-    uvicorn api:app --port 8080
+    uvicorn api:app --port 8000
 """
 import json
+import os
 import time
 import urllib.request
 import uuid
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import BaseModel, Field
 
 from config import OLLAMA_URL
 from grafo import planear
 
 app = FastAPI(title="Planeador de fin de semana - LangGraph")
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:4200")
 
 # Mismo permiso CORS que @CrossOrigin del ChatController en Spring.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:4200"],
+    allow_origins=[FRONTEND_URL],
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.get("/", include_in_schema=False)
+def inicio():
+    """Al abrir el backend en el navegador, lleva al usuario a la interfaz."""
+    return RedirectResponse(FRONTEND_URL)
 
 
 class ChatRequest(BaseModel):
