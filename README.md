@@ -18,6 +18,54 @@ pregunta → supervisor → (clima | presupuesto | actividades | reservas) → s
 
 ## Instalación
 
+### Opción recomendada: Docker Compose
+
+Solo requiere Docker Desktop. El primer arranque descarga la imagen de Ollama y el modelo
+`qwen2.5:3b` (aproximadamente 1,9 GB); los siguientes reutilizan el volumen local.
+
+```bash
+docker compose up --build
+```
+
+Cuando los servicios estén listos:
+
+- API: http://localhost:8080
+- Documentación interactiva: http://localhost:8080/docs
+- Salud de Ollama: http://localhost:8080/health/llm
+
+Prueba rápida desde otra terminal:
+
+```powershell
+Invoke-RestMethod -Method Post `
+  -Uri "http://localhost:8080/api/v1/chat" `
+  -ContentType "application/json" `
+  -Body '{"question":"¿Cómo estará el clima en Guatavita el domingo?"}'
+```
+
+Para detener los servicios sin borrar el modelo descargado:
+
+```bash
+docker compose down
+```
+
+Para ver la traza de los agentes si los servicios se levantaron en segundo plano:
+
+```bash
+docker compose logs -f api
+```
+
+Para usar otro modelo compatible con tools:
+
+```bash
+# PowerShell
+$env:MODELO_OLLAMA = "llama3.2:3b"
+docker compose up --build
+```
+
+> `docker compose down -v` también elimina el volumen y el modelo descargado.
+
+### Opción manual: Python y Ollama instalados localmente
+
 ```bash
 ollama pull qwen2.5:3b
 ollama show qwen2.5:3b        # en "Capabilities" debe aparecer: tools
@@ -40,6 +88,7 @@ pip install -r requirements.txt
 | `python pruebas.py` | Corre las 6 preguntas de prueba + la del reto, con traza y tiempos |
 | `python pruebas.py 4` | Corre solo la pregunta 4 |
 | `uvicorn api:app --port 8080` | API REST con el contrato de pruebachat (`POST /api/v1/chat`, `GET /health/llm`) |
+| `docker compose up --build` | Levanta Ollama, descarga el modelo y arranca la API |
 
 Para cambiar de modelo o de servidor sin tocar el código:
 
@@ -72,6 +121,8 @@ Abrir http://localhost:4200. Documentación interactiva de la API en http://loca
 | `grafo.py` | Estado, supervisor, nodos, arista condicional y grafo compilado |
 | `main.py` | Chat por consola |
 | `api.py` | API FastAPI |
+| `Dockerfile` | Imagen reproducible de la API en Python 3.12 |
+| `compose.yaml` | Orquesta Ollama, descarga del modelo y API |
 | `pruebas.py` | Preguntas de prueba con traza y tiempos |
 | `docs/bitacora.pdf` | Bitácora del grupo (fuente: `docs/bitacora.html`) |
 | `docs/traza_pruebas.txt` | Traza completa de la última corrida de `pruebas.py` |
