@@ -1,6 +1,6 @@
 # Planeador de fin de semana multiagente (LangGraph + Ollama)
 
-Taller del Módulo 3 — *Aplicaciones basadas en grandes modelos de lenguaje*, Universidad El Bosque.
+Taller de — *Aplicaciones basadas en grandes modelos de lenguaje*, Universidad El Bosque.
 
 Un supervisor coordina a cuatro agentes especialistas (clima, presupuesto, reservas y
 **actividades**, este último es el reto de la Parte 7) que usan herramientas sobre datos
